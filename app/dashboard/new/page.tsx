@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
+import { friendlyError } from "@/lib/i18n";
+import { useT } from "@/components/LanguageProvider";
 
 function makeSlug(name: string) {
     const base = name
@@ -14,11 +16,14 @@ function makeSlug(name: string) {
         .replace(/^-+|-+$/g, "")
         .slice(0, 40);
     const suffix = Math.random().toString(36).slice(2, 6);
-    return `${base || "produit"}-${suffix}`;
+    return `${base || "product"}-${suffix}`;
 }
 
 export default function NewProductPage() {
     const router = useRouter();
+    const { t, lang } = useT();
+    const n = t.newProduct;
+
     const [shop, setShop] = useState("");
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
@@ -45,7 +50,7 @@ export default function NewProductPage() {
 
         const amount = Number(price);
         if (!Number.isInteger(amount) || amount <= 0) {
-            setMessage("Le prix doit être un nombre entier supérieur à 0.");
+            setMessage(n.priceError);
             return;
         }
 
@@ -59,20 +64,20 @@ export default function NewProductPage() {
         setLoading(false);
 
         if (error) {
-            setMessage(error.message);
+            setMessage(friendlyError(error.message, lang));
             return;
         }
         router.push("/dashboard");
     }
 
     return (
-        <main className="min-h-screen bg-gray-50 px-4 py-10 text-gray-900">
+        <main translate="no" className="min-h-screen bg-gray-50 px-4 py-14 text-gray-900">
             <div className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-sm">
-                <h1 className="text-2xl font-bold">Nouveau produit</h1>
+                <h1 className="text-2xl font-bold">{n.title}</h1>
 
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                     <div>
-                        <label className="text-sm font-medium">Nom de ta boutique</label>
+                        <label className="text-sm font-medium">{n.shop}</label>
                         <input
                             required
                             value={shop}
@@ -81,7 +86,7 @@ export default function NewProductPage() {
                         />
                     </div>
                     <div>
-                        <label className="text-sm font-medium">Nom du produit</label>
+                        <label className="text-sm font-medium">{n.name}</label>
                         <input
                             required
                             value={name}
@@ -90,7 +95,7 @@ export default function NewProductPage() {
                         />
                     </div>
                     <div>
-                        <label className="text-sm font-medium">Prix (FCFA)</label>
+                        <label className="text-sm font-medium">{n.price}</label>
                         <input
                             required
                             inputMode="numeric"
@@ -100,18 +105,14 @@ export default function NewProductPage() {
                         />
                     </div>
 
-                    {message && (
-                        <p className="text-sm text-red-600">
-                            <span>{message}</span>
-                        </p>
-                    )}
+                    {message && <p className="text-sm text-red-600">{message}</p>}
 
                     <button
                         type="submit"
                         disabled={loading}
                         className="w-full rounded-lg bg-green-700 px-4 py-3 font-semibold text-white disabled:opacity-60"
                     >
-                        <span>{loading ? "Patiente..." : "Créer le produit"}</span>
+                        {loading ? n.wait : n.submit}
                     </button>
                 </form>
 
@@ -119,7 +120,7 @@ export default function NewProductPage() {
                     href="/dashboard"
                     className="mt-4 block text-center text-sm text-gray-600 underline"
                 >
-                    Retour à mes produits
+                    {n.back}
                 </Link>
             </div>
         </main>

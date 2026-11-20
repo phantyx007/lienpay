@@ -21,6 +21,9 @@ export async function getProduct(slug: string): Promise<Product | null> {
     return data;
 }
 
-export function formatPrice(amount: number) {
-    return new Intl.NumberFormat("fr-FR").format(amount) + " FCFA";
+export function formatPrice(amount: number, lang: "fr" | "en" = "fr") {
+    return (
+        new Intl.NumberFormat(lang === "en" ? "en-US" : "fr-FR").format(amount) +
+        " FCFA"
+    );
 }

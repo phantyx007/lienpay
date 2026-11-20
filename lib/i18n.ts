@@ -1,0 +1,243 @@
+export type Lang = "fr" | "en";
+
+const fr = {
+    home: {
+        tag: "Pour les vendeurs WhatsApp et Instagram",
+        title: "Encaissez vos ventes avec un simple lien.",
+        text: "Envoyez un lien de paiement à votre cliente dans la conversation. Elle paie par mobile money ou par carte, et vous êtes prévenue automatiquement. Fini les fausses captures d’écran.",
+        example: "Exemple de produit",
+        product: "Robe bleue",
+        pay: "Payer maintenant",
+        methods: "Mobile money · Carte bancaire",
+        sellerArea: "Espace vendeuse",
+    },
+    product: {
+        pay: "Payer maintenant",
+        methods: "Mobile money · Carte bancaire",
+        error: "La commande n’a pas pu être créée. Réessaie dans un instant.",
+        formTitle: "Tes informations de livraison",
+        nameLabel: "Ton nom",
+        phoneLabel: "Ton numéro de téléphone",
+        phoneHint: "Ex : +228 90 00 00 00",
+        addressLabel: "Adresse de livraison (quartier, repère)",
+        fieldsError: "Vérifie ton nom, ton numéro de téléphone et ton adresse.",
+    },
+    order: {
+        title: "Ta commande",
+        pending: "En attente de paiement",
+        paid: "Paiement confirmé",
+        failed: "Paiement échoué",
+        canceled: "Commande annulée",
+        paidMessage: "Merci ! Le paiement est confirmé et la vendeuse a été prévenue.",
+        pendingMessage: "Nous attendons la confirmation de ton paiement. Recharge cette page dans un instant.",
+        failedMessage: "Le paiement n’a pas abouti. Tu peux retourner à la page du produit pour réessayer.",
+        testTitle: "Mode test (visible seulement en développement)",
+        testPaid: "Simuler un paiement réussi",
+        testFailed: "Simuler un échec",
+    },
+    login: {
+        titleLogin: "Connexion vendeuse",
+        titleSignup: "Créer mon compte",
+        shopName: "Nom de ta boutique",
+        shopPlaceholder: "Ex : Boutique Aïcha",
+        shopHint: "Ce nom sera visible par tes clientes sur la page de paiement.",
+        email: "Adresse e-mail",
+        password: "Mot de passe",
+        show: "Afficher",
+        hide: "Masquer",
+        rulesTitle: "Choisis un mot de passe difficile à deviner :",
+        ruleLength: "Au moins 8 caractères",
+        ruleLower: "Une lettre minuscule (a, b, c…)",
+        ruleUpper: "Une lettre majuscule (A, B, C…)",
+        ruleDigit: "Un chiffre (0 à 9)",
+        tip: "Astuce : évite ton prénom, ton numéro de téléphone ou « 12345678 ». Ne réutilise pas le mot de passe d’un autre compte.",
+        rulesError: "Ton mot de passe ne respecte pas encore toutes les règles ci-dessous.",
+        wait: "Patiente...",
+        submitLogin: "Se connecter",
+        submitSignup: "Créer mon compte",
+        switchToSignup: "Pas de compte ? Créer un compte",
+        switchToLogin: "Déjà un compte ? Se connecter",
+    },
+    dashboard: {
+        title: "Mes produits",
+        defaultShop: "Ma boutique",
+        logout: "Se déconnecter",
+        add: "+ Ajouter un produit",
+        orders: "Mes commandes",
+        empty: "Tu n’as pas encore de produit. Clique sur « Ajouter un produit » pour créer le premier.",
+        copy: "Copier le lien",
+        copied: "Lien copié !",
+        view: "Voir la page",
+        loading: "Chargement...",
+    },
+    ordersPage: {
+        title: "Mes commandes",
+        back: "Retour à mes produits",
+        empty: "Aucune commande pour l’instant.",
+        loading: "Chargement...",
+        customer: "Cliente",
+        phone: "Téléphone",
+        address: "Adresse",
+        payment: "Paiement",
+        delivery: "Livraison",
+        paymentPending: "En attente",
+        paymentPaid: "Payée",
+        paymentFailed: "Échouée",
+        paymentCanceled: "Annulée",
+        deliveryToPrepare: "À préparer",
+        deliveryShipped: "En livraison",
+        deliveryDelivered: "Livrée",
+        deliveryCanceled: "Annulée",
+        markShipped: "Marquer en livraison",
+        markDelivered: "Marquer livrée",
+        updateError: "La mise à jour a échoué. Réessaie.",
+    },
+    newProduct: {
+        title: "Nouveau produit",
+        shop: "Nom de ta boutique",
+        name: "Nom du produit",
+        price: "Prix (FCFA)",
+        priceError: "Le prix doit être un nombre entier supérieur à 0.",
+        wait: "Patiente...",
+        submit: "Créer le produit",
+        back: "Retour à mes produits",
+    },
+};
+
+type Dict = typeof fr;
+
+const en: Dict = {
+    home: {
+        tag: "For WhatsApp and Instagram sellers",
+        title: "Get paid with a simple link.",
+        text: "Send a payment link to your customer in the chat. She pays by mobile money or card, and you are notified automatically. No more fake screenshots.",
+        example: "Sample product",
+        product: "Blue dress",
+        pay: "Pay now",
+        methods: "Mobile money · Card",
+        sellerArea: "Seller area",
+    },
+    product: {
+        pay: "Pay now",
+        methods: "Mobile money · Card",
+        error: "The order could not be created. Please try again in a moment.",
+        formTitle: "Your delivery details",
+        nameLabel: "Your name",
+        phoneLabel: "Your phone number",
+        phoneHint: "e.g. +228 90 00 00 00",
+        addressLabel: "Delivery address (area, landmark)",
+        fieldsError: "Please check your name, phone number and address.",
+    },
+    order: {
+        title: "Your order",
+        pending: "Waiting for payment",
+        paid: "Payment confirmed",
+        failed: "Payment failed",
+        canceled: "Order canceled",
+        paidMessage: "Thank you! Your payment is confirmed and the seller has been notified.",
+        pendingMessage: "We are waiting for your payment to be confirmed. Reload this page in a moment.",
+        failedMessage: "The payment did not go through. You can go back to the product page to try again.",
+        testTitle: "Test mode (only visible in development)",
+        testPaid: "Simulate a successful payment",
+        testFailed: "Simulate a failure",
+    },
+    login: {
+        titleLogin: "Seller login",
+        titleSignup: "Create my account",
+        shopName: "Your shop name",
+        shopPlaceholder: "e.g. Aicha’s Shop",
+        shopHint: "This name will be visible to your customers on the payment page.",
+        email: "Email address",
+        password: "Password",
+        show: "Show",
+        hide: "Hide",
+        rulesTitle: "Choose a password that is hard to guess:",
+        ruleLength: "At least 8 characters",
+        ruleLower: "One lowercase letter (a, b, c…)",
+        ruleUpper: "One uppercase letter (A, B, C…)",
+        ruleDigit: "One digit (0 to 9)",
+        tip: "Tip: avoid your first name, your phone number or “12345678”. Don’t reuse the password of another account.",
+        rulesError: "Your password doesn’t meet all the rules below yet.",
+        wait: "Please wait...",
+        submitLogin: "Log in",
+        submitSignup: "Create my account",
+        switchToSignup: "No account? Create one",
+        switchToLogin: "Already have an account? Log in",
+    },
+    dashboard: {
+        title: "My products",
+        defaultShop: "My shop",
+        logout: "Log out",
+        add: "+ Add a product",
+        orders: "My orders",
+        empty: "You don’t have any products yet. Click “Add a product” to create your first one.",
+        copy: "Copy link",
+        copied: "Link copied!",
+        view: "View page",
+        loading: "Loading...",
+    },
+    ordersPage: {
+        title: "My orders",
+        back: "Back to my products",
+        empty: "No orders yet.",
+        loading: "Loading...",
+        customer: "Customer",
+        phone: "Phone",
+        address: "Address",
+        payment: "Payment",
+        delivery: "Delivery",
+        paymentPending: "Pending",
+        paymentPaid: "Paid",
+        paymentFailed: "Failed",
+        paymentCanceled: "Canceled",
+        deliveryToPrepare: "To prepare",
+        deliveryShipped: "Out for delivery",
+        deliveryDelivered: "Delivered",
+        deliveryCanceled: "Canceled",
+        markShipped: "Mark as out for delivery",
+        markDelivered: "Mark as delivered",
+        updateError: "The update failed. Please try again.",
+    },
+    newProduct: {
+        title: "New product",
+        shop: "Your shop name",
+        name: "Product name",
+        price: "Price (FCFA)",
+        priceError: "The price must be a whole number greater than 0.",
+        wait: "Please wait...",
+        submit: "Create product",
+        back: "Back to my products",
+    },
+};
+
+export const dictionaries: Record<Lang, Dict> = { fr, en };
+
+export function isLang(value: string | undefined | null): value is Lang {
+    return value === "fr" || value === "en";
+}
+
+export function resolveLang(
+    cookieValue?: string | null,
+    acceptLanguage?: string | null
+): Lang {
+    if (isLang(cookieValue)) return cookieValue;
+    if (acceptLanguage) {
+        const tags = acceptLanguage
+            .split(",")
+            .map((part) => part.split(";")[0].trim().toLowerCase());
+        for (const tag of tags) {
+            if (tag.startsWith("fr")) return "fr";
+            if (tag.startsWith("en")) return "en";
+        }
+    }
+    return "fr";
+}
+
+export function friendlyError(message: string, lang: Lang): string {
+    if (lang === "en") return message;
+    const m = message.toLowerCase();
+    if (m.includes("invalid login credentials")) return "E-mail ou mot de passe incorrect.";
+    if (m.includes("already registered")) return "Un compte existe déjà avec cette adresse e-mail.";
+    if (m.includes("rate limit")) return "Trop de tentatives. Réessaie dans quelques minutes.";
+    return message;
+}
