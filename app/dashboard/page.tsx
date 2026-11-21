@@ -7,7 +7,12 @@ import { supabaseBrowser } from "@/lib/supabase-browser";
 import { useT } from "@/components/LanguageProvider";
 import ShopSetup, { type Shop } from "@/components/ShopSetup";
 
-type MyProduct = { slug: string; name: string; price: number };
+type MyProduct = {
+    slug: string;
+    name: string;
+    price: number;
+    image_path: string | null;
+};
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -47,7 +52,7 @@ export default function DashboardPage() {
 
             const { data } = await supabaseBrowser
                 .from("products")
-                .select("slug, name, price")
+                .select("slug, name, price, image_path")
                 .eq("seller_id", user.id)
                 .order("created_at", { ascending: false });
             setProducts(data ?? []);
@@ -171,15 +176,28 @@ export default function DashboardPage() {
                     ) : (
                         products.map((p) => (
                             <div key={p.slug} className="rounded-xl bg-white p-5 shadow-sm">
-                                <div className="flex items-start justify-between gap-3">
-                                    <p className="font-semibold">{p.name}</p>
+                                <div className="flex items-start gap-3">
+                                    {p.image_path && (
+                                        <img
+                                            src={
+                                                supabaseBrowser.storage
+                                                    .from("product-images")
+                                                    .getPublicUrl(p.image_path).data.publicUrl
+                                            }
+                                            alt=""
+                                            className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                                        />
+                                    )}
+                                    <p className="min-w-0 flex-1 font-semibold">{p.name}</p>
                                     <p className="shrink-0 font-bold text-green-700">
                                         {fmt.format(p.price)} FCFA
                                     </p>
                                 </div>
+
                                 <p className="mt-2 break-all rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">
                                     /{shop.handle}/{p.slug}
                                 </p>
+
                                 <div className="mt-3 flex gap-3 text-sm">
                                     <button
                                         onClick={() => copyLink(p.slug)}

@@ -6,14 +6,13 @@ export type Product = {
     name: string;
     price: number;
     seller: string;
+    imageUrl: string | null;
 };
 
 export async function getProductByLink(
     handle: string,
     slug: string
 ): Promise<Product | null> {
-    console.log("[lien] recherche :", { handle, slug });
-
     const { data: shop, error: shopError } = await supabase
         .from("shops")
         .select("seller_id, name")
@@ -24,14 +23,11 @@ export async function getProductByLink(
         console.error("[lien] erreur boutique :", shopError.message);
         return null;
     }
-    if (!shop) {
-        console.error("[lien] aucune boutique avec l'adresse :", handle);
-        return null;
-    }
+    if (!shop) return null;
 
     const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, price")
+        .select("id, slug, name, price, image_path")
         .eq("seller_id", shop.seller_id)
         .eq("slug", slug)
         .maybeSingle();
@@ -40,12 +36,21 @@ export async function getProductByLink(
         console.error("[lien] erreur produit :", error.message);
         return null;
     }
-    if (!data) {
-        console.error("[lien] aucun produit avec le lien :", slug);
-        return null;
-    }
+    if (!data) return null;
 
-    return { ...data, seller: shop.name };
+    const imageUrl = data.image_path
+        ? supabase.storage.from("product-images").getPublicUrl(data.image_path).data
+            .publicUrl
+        : null;
+
+    return {
+        id: data.id,
+        slug: data.slug,
+        name: data.name,
+        price: data.price,
+        seller: shop.name,
+        imageUrl,
+    };
 }
 
 export function formatPrice(amount: number, lang: "fr" | "en" = "fr") {

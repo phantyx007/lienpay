@@ -116,6 +116,11 @@ const fr = {
         linkInvalid: "Le lien doit contenir des lettres minuscules, des chiffres et des tirets (pas au début ni à la fin).",
         linkTaken: "Tu as déjà un produit avec ce lien. Choisis-en un autre.",
         preview: "Lien que tu enverras :",
+        image: "Photo du produit (facultatif)",
+        imageHint: "JPG, PNG ou WebP. Elle sera réduite automatiquement.",
+        imageInvalid: "Choisis une image JPG, PNG ou WebP de moins de 10 Mo.",
+        imageError: "L’envoi de la photo a échoué. Réessaie ou crée le produit sans photo.",
+        removeImage: "Retirer la photo",
     },
     shopSetup: {
         title: "Crée ta boutique",
@@ -251,6 +256,11 @@ const en: Dict = {
         linkInvalid: "The link must use lowercase letters, digits and hyphens (not at the start or end).",
         linkTaken: "You already have a product with this link. Choose another one.",
         preview: "Link you will send:",
+        image: "Product photo (optional)",
+        imageHint: "JPG, PNG or WebP. It will be resized automatically.",
+        imageInvalid: "Choose a JPG, PNG or WebP image under 10 MB.",
+        imageError: "The photo upload failed. Try again or create the product without a photo.",
+        removeImage: "Remove photo",
     },
     shopSetup: {
         title: "Create your shop",
