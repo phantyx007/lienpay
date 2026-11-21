@@ -12,8 +12,12 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // Simulation de paiement : désactivée en production.
 async function simulate(formData: FormData) {
     "use server";
-    if (process.env.NODE_ENV === "production") return;
-
+    if (
+        process.env.NODE_ENV === "production" ||
+        process.env.ENABLE_PAYMENT_SIMULATOR !== "true"
+    ) {
+        return;
+    }
     const orderId = String(formData.get("orderId") ?? "");
     const outcome = String(formData.get("outcome") ?? "");
     if (!UUID.test(orderId)) return;
@@ -66,7 +70,9 @@ export default async function OrderPage({
     };
 
     const showTools =
-        process.env.NODE_ENV !== "production" && order.status === "pending";
+        process.env.NODE_ENV !== "production" &&
+        process.env.ENABLE_PAYMENT_SIMULATOR === "true" &&
+        order.status === "pending";
 
     return (
         <main className="min-h-screen bg-gray-50 px-4 py-14 text-gray-900">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { useT } from "@/components/LanguageProvider";
+import ShopSetup, { type Shop } from "@/components/ShopSetup";
 
 type MyProduct = { slug: string; name: string; price: number };
 
@@ -13,7 +14,9 @@ export default function DashboardPage() {
     const { t, lang } = useT();
     const d = t.dashboard;
 
-    const [displayName, setDisplayName] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
+    const [defaultName, setDefaultName] = useState("");
+    const [shop, setShop] = useState<Shop | null>(null);
     const [products, setProducts] = useState<MyProduct[]>([]);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState<string | null>(null);
@@ -28,7 +31,17 @@ export default function DashboardPage() {
                 router.replace("/login");
                 return;
             }
-            setDisplayName(user.user_metadata?.shop_name ?? null);
+            setUserId(user.id);
+            setDefaultName(
+                user.user_metadata?.shop_name ?? user.user_metadata?.full_name ?? ""
+            );
+
+            const { data: shopData } = await supabaseBrowser
+                .from("shops")
+                .select("handle, name")
+                .eq("seller_id", user.id)
+                .maybeSingle();
+            setShop(shopData ?? null);
 
             const { data } = await supabaseBrowser
                 .from("products")
@@ -48,8 +61,11 @@ export default function DashboardPage() {
     }
 
     async function copyLink(slug: string) {
+        if (!shop) return;
         try {
-            await navigator.clipboard.writeText(`${window.location.origin}/p/${slug}`);
+            await navigator.clipboard.writeText(
+                `${window.location.origin}/${shop.handle}/${slug}`
+            );
             setCopied(slug);
             setTimeout(() => setCopied(null), 2000);
         } catch {
@@ -67,13 +83,23 @@ export default function DashboardPage() {
         );
     }
 
+    if (!shop && userId) {
+        return (
+            <main translate="no" className="min-h-screen bg-gray-50 px-4 py-14 text-gray-900">
+                <ShopSetup userId={userId} defaultName={defaultName} onCreated={setShop} />
+            </main>
+        );
+    }
+
+    if (!shop) return null;
+
     return (
         <main translate="no" className="min-h-screen bg-gray-50 px-4 py-14 text-gray-900">
             <div className="mx-auto max-w-2xl">
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">{d.title}</h1>
-                        <p className="text-sm text-gray-500">{displayName ?? d.defaultShop}</p>
+                        <p className="text-sm text-gray-500">{shop.name}</p>
                     </div>
                     <button onClick={logout} className="text-sm text-gray-600 underline">
                         {d.logout}
@@ -86,6 +112,7 @@ export default function DashboardPage() {
                 >
                     {d.add}
                 </Link>
+
                 <Link
                     href="/dashboard/orders"
                     className="mt-3 block rounded-lg border border-green-700 px-4 py-3 text-center font-semibold text-green-700"
@@ -101,7 +128,9 @@ export default function DashboardPage() {
                             <div key={p.slug} className="rounded-xl bg-white p-5 shadow-sm">
                                 <p className="font-semibold">{p.name}</p>
                                 <p className="text-gray-600">{fmt.format(p.price)} FCFA</p>
-                                <p className="mt-1 break-all text-xs text-gray-400">/p/{p.slug}</p>
+                                <p className="mt-1 break-all text-xs text-gray-400">
+                                    /{shop.handle}/{p.slug}
+                                </p>
                                 <div className="mt-3 flex gap-4 text-sm">
                                     <button
                                         onClick={() => copyLink(p.slug)}
@@ -109,7 +138,10 @@ export default function DashboardPage() {
                                     >
                                         {copied === p.slug ? d.copied : d.copy}
                                     </button>
-                                    <Link href={`/p/${p.slug}`} className="text-gray-600 underline">
+                                    <Link
+                                        href={`/${shop.handle}/${p.slug}`}
+                                        className="text-gray-600 underline"
+                                    >
                                         {d.view}
                                     </Link>
                                 </div>

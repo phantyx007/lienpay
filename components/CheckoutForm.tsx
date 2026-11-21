@@ -14,10 +14,10 @@ type Labels = {
 };
 
 export default function CheckoutForm({
-    slug,
+    productId,
     labels,
 }: {
-    slug: string;
+    productId: string;
     labels: Labels;
 }) {
     const [name, setName] = useState("");
@@ -34,7 +34,7 @@ export default function CheckoutForm({
             const res = await fetch("/api/orders", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ slug, name, phone, address }),
+                body: JSON.stringify({ productId, name, phone, address }),
             });
             const data = await res.json().catch(() => ({}));
             if (res.status === 400) {

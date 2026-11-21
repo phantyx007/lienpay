@@ -5,32 +5,25 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { friendlyError } from "@/lib/i18n";
+import { SLUG_RE, slugify } from "@/lib/slug";
 import { useT } from "@/components/LanguageProvider";
-
-function makeSlug(name: string) {
-    const base = name
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "")
-        .slice(0, 40);
-    const suffix = Math.random().toString(36).slice(2, 6);
-    return `${base || "product"}-${suffix}`;
-}
 
 export default function NewProductPage() {
     const router = useRouter();
     const { t, lang } = useT();
     const n = t.newProduct;
 
-    const [shop, setShop] = useState("");
+    const [shop, setShop] = useState<{ handle: string; name: string } | null>(null);
+    const [origin, setOrigin] = useState("");
     const [name, setName] = useState("");
+    const [slug, setSlug] = useState("");
+    const [slugEdited, setSlugEdited] = useState(false);
     const [price, setPrice] = useState("");
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        setOrigin(window.location.origin);
         async function init() {
             const {
                 data: { user },
@@ -39,32 +32,57 @@ export default function NewProductPage() {
                 router.replace("/login");
                 return;
             }
-            setShop(user.user_metadata?.shop_name ?? "");
+            const { data } = await supabaseBrowser
+                .from("shops")
+                .select("handle, name")
+                .eq("seller_id", user.id)
+                .maybeSingle();
+            if (!data) {
+                router.replace("/dashboard");
+                return;
+            }
+            setShop(data);
         }
         init();
     }, [router]);
 
+    function onNameChange(value: string) {
+        setName(value);
+        if (!slugEdited) setSlug(slugify(value, 50));
+    }
+
+    function onSlugChange(value: string) {
+        setSlugEdited(true);
+        setSlug(value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
+    }
+
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setMessage("");
+        if (!shop) return;
 
         const amount = Number(price);
         if (!Number.isInteger(amount) || amount <= 0) {
             setMessage(n.priceError);
             return;
         }
+        if (slug.length < 2 || slug.length > 50 || !SLUG_RE.test(slug)) {
+            setMessage(n.linkInvalid);
+            return;
+        }
 
         setLoading(true);
         const { error } = await supabaseBrowser.from("products").insert({
-            slug: makeSlug(name),
+            slug,
             name: name.trim(),
             price: amount,
-            seller: shop.trim(),
+            seller: shop.name,
         });
         setLoading(false);
 
         if (error) {
-            setMessage(friendlyError(error.message, lang));
+            if (error.code === "23505") setMessage(n.linkTaken);
+            else setMessage(friendlyError(error.message, lang));
             return;
         }
         router.push("/dashboard");
@@ -77,23 +95,32 @@ export default function NewProductPage() {
 
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                     <div>
-                        <label className="text-sm font-medium">{n.shop}</label>
-                        <input
-                            required
-                            value={shop}
-                            onChange={(e) => setShop(e.target.value)}
-                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
-                        />
-                    </div>
-                    <div>
                         <label className="text-sm font-medium">{n.name}</label>
                         <input
                             required
                             value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            onChange={(e) => onNameChange(e.target.value)}
                             className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
                         />
                     </div>
+
+                    <div>
+                        <label className="text-sm font-medium">{n.link}</label>
+                        <input
+                            required
+                            maxLength={50}
+                            value={slug}
+                            onChange={(e) => onSlugChange(e.target.value)}
+                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">{n.linkHint}</p>
+                        {shop && (
+                            <p className="mt-2 break-all rounded-lg bg-gray-50 p-2 text-xs text-gray-600">
+                                {n.preview} {origin}/{shop.handle}/{slug || "…"}
+                            </p>
+                        )}
+                    </div>
+
                     <div>
                         <label className="text-sm font-medium">{n.price}</label>
                         <input
@@ -105,11 +132,11 @@ export default function NewProductPage() {
                         />
                     </div>
 
-                    {message && <p className="text-sm text-red-600">{message}</p>}
+                    <p className="text-sm text-red-600">{message}</p>
 
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={loading || !shop}
                         className="w-full rounded-lg bg-green-700 px-4 py-3 font-semibold text-white disabled:opacity-60"
                     >
                         {loading ? n.wait : n.submit}
