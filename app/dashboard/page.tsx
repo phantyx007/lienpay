@@ -203,6 +203,12 @@ export default function DashboardPage() {
                         {d.orders}
                     </Link>
                 </div>
+                <Link
+                    href="/dashboard/customers"
+                    className="mt-3 block rounded-lg border border-green-700 bg-white px-4 py-3 text-center font-semibold text-green-700"
+                >
+                    {d.customers}
+                </Link>
 
                 <h2 className="mt-8 text-lg font-bold">{d.title}</h2>
 

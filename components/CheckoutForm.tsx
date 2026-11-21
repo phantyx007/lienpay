@@ -1,12 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import type { CountryCode } from "libphonenumber-js";
+import {
+    buildPhone,
+    getCountryOptions,
+    getPhoneExample,
+} from "@/lib/countries";
 
 type Labels = {
     title: string;
     name: string;
     phone: string;
     phoneHint: string;
+    country: string;
     address: string;
     pay: string;
     fieldsError: string;
@@ -15,26 +22,39 @@ type Labels = {
 
 export default function CheckoutForm({
     productId,
+    lang,
     labels,
 }: {
     productId: string;
+    lang: "fr" | "en";
     labels: Labels;
 }) {
     const [name, setName] = useState("");
+    const [countryCode, setCountryCode] = useState<CountryCode>("TG");
     const [phone, setPhone] = useState("");
     const [address, setAddress] = useState("");
     const [errorText, setErrorText] = useState("");
     const [loading, setLoading] = useState(false);
 
+    const { africa, abroad } = useMemo(() => getCountryOptions(lang), [lang]);
+    const example = useMemo(() => getPhoneExample(countryCode), [countryCode]);
+
     async function submit(e: React.FormEvent) {
         e.preventDefault();
         setErrorText("");
+
+        const fullPhone = buildPhone(countryCode, phone);
+        if (!fullPhone) {
+            setErrorText(labels.fieldsError);
+            return;
+        }
+
         setLoading(true);
         try {
             const res = await fetch("/api/orders", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId, name, phone, address }),
+                body: JSON.stringify({ productId, name, phone: fullPhone, address }),
             });
             const data = await res.json().catch(() => ({}));
             if (res.status === 400) {
@@ -68,15 +88,37 @@ export default function CheckoutForm({
 
             <div>
                 <label className="text-sm font-medium">{labels.phone}</label>
-                <input
-                    required
-                    type="tel"
-                    autoComplete="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder={labels.phoneHint}
-                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
-                />
+                <div className="mt-1 flex gap-2">
+                    <select
+                        aria-label={labels.country}
+                        value={countryCode}
+                        onChange={(e) => setCountryCode(e.target.value as CountryCode)}
+                        className="w-40 shrink-0 rounded-lg border border-gray-300 bg-white px-2 py-2"
+                    >
+                        {africa.map((c) => (
+                            <option key={c.code} value={c.code}>
+                                +{c.dial} {c.name}
+                            </option>
+                        ))}
+                        <option disabled>──────────</option>
+                        {abroad.map((c) => (
+                            <option key={c.code} value={c.code}>
+                                +{c.dial} {c.name}
+                            </option>
+                        ))}
+                    </select>
+                    <input
+                        required
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel-national"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder={example}
+                        className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2"
+                    />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">{labels.phoneHint}</p>
             </div>
 
             <div>
