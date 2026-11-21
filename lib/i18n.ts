@@ -79,6 +79,12 @@ const fr = {
         logoutText: "Tu devras te reconnecter pour accéder à ta boutique.",
         cancel: "Annuler",
         logoutConfirm: "Oui, me déconnecter",
+        edit: "Modifier",
+        delete: "Supprimer",
+        deleteTitle: "Supprimer ce produit ?",
+        deleteText: "Son lien ne fonctionnera plus. Les commandes déjà reçues restent visibles.",
+        deleteConfirm: "Oui, supprimer",
+        deleteError: "La suppression a échoué. Réessaie.",
     },
     ordersPage: {
         title: "Mes commandes",
@@ -121,6 +127,8 @@ const fr = {
         imageInvalid: "Choisis une image JPG, PNG ou WebP de moins de 10 Mo.",
         imageError: "L’envoi de la photo a échoué. Réessaie ou crée le produit sans photo.",
         removeImage: "Retirer la photo",
+        changeImage: "Changer la photo",
+        addImage: "Ajouter une photo",
     },
     shopSetup: {
         title: "Crée ta boutique",
@@ -135,6 +143,17 @@ const fr = {
         handleTaken: "Cette adresse est déjà prise. Essaie une autre.",
         handleReserved: "Cette adresse n’est pas disponible. Essaie une autre.",
         error: "La boutique n’a pas pu être créée. Réessaie.",
+    },
+    editProduct: {
+        title: "Modifier le produit",
+        save: "Enregistrer",
+        wait: "Patiente...",
+        linkFixed: "Le lien ne peut pas être modifié : tu l’as peut-être déjà envoyé à des clientes.",
+        priceNote: "Le nouveau prix s’applique aux prochaines commandes seulement.",
+        notFound: "Produit introuvable.",
+        back: "Retour à mes produits",
+        loading: "Chargement...",
+        saveError: "Les modifications n’ont pas pu être enregistrées. Réessaie.",
     },
 };
 
@@ -219,6 +238,12 @@ const en: Dict = {
         logoutText: "You will need to log in again to access your shop.",
         cancel: "Cancel",
         logoutConfirm: "Yes, log out",
+        edit: "Edit",
+        delete: "Delete",
+        deleteTitle: "Delete this product?",
+        deleteText: "Its link will stop working. Orders you already received stay visible.",
+        deleteConfirm: "Yes, delete",
+        deleteError: "The deletion failed. Please try again.",
     },
     ordersPage: {
         title: "My orders",
@@ -261,6 +286,8 @@ const en: Dict = {
         imageInvalid: "Choose a JPG, PNG or WebP image under 10 MB.",
         imageError: "The photo upload failed. Try again or create the product without a photo.",
         removeImage: "Remove photo",
+        changeImage: "Change photo",
+        addImage: "Add a photo",
     },
     shopSetup: {
         title: "Create your shop",
@@ -275,6 +302,17 @@ const en: Dict = {
         handleTaken: "This address is already taken. Try another one.",
         handleReserved: "This address is not available. Try another one.",
         error: "The shop could not be created. Please try again.",
+    },
+    editProduct: {
+        title: "Edit product",
+        save: "Save",
+        wait: "Please wait...",
+        linkFixed: "The link cannot be changed: you may have already sent it to customers.",
+        priceNote: "The new price only applies to future orders.",
+        notFound: "Product not found.",
+        back: "Back to my products",
+        loading: "Loading...",
+        saveError: "The changes could not be saved. Please try again.",
     },
 };
 

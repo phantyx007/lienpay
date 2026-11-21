@@ -27,6 +27,9 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState<string | null>(null);
     const [confirmLogout, setConfirmLogout] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<MyProduct | null>(null);
+    const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState("");
 
     useEffect(() => {
         async function load() {
@@ -70,13 +73,17 @@ export default function DashboardPage() {
     }, [router]);
 
     useEffect(() => {
-        if (!confirmLogout) return;
+        if (!confirmLogout && !deleteTarget) return;
         function onKey(e: KeyboardEvent) {
-            if (e.key === "Escape") setConfirmLogout(false);
+            if (e.key === "Escape") {
+                setConfirmLogout(false);
+                setDeleteTarget(null);
+                setDeleteError("");
+            }
         }
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
-    }, [confirmLogout]);
+    }, [confirmLogout, deleteTarget]);
 
     async function logout() {
         await supabaseBrowser.auth.signOut();
@@ -94,6 +101,35 @@ export default function DashboardPage() {
         } catch {
             setCopied(null);
         }
+    }
+
+    async function deleteProduct() {
+        if (!deleteTarget || !userId) return;
+        setDeleting(true);
+        setDeleteError("");
+
+        const { data, error } = await supabaseBrowser
+            .from("products")
+            .delete()
+            .eq("seller_id", userId)
+            .eq("slug", deleteTarget.slug)
+            .select("slug");
+
+        if (error || !data || data.length === 0) {
+            setDeleting(false);
+            setDeleteError(d.deleteError);
+            return;
+        }
+
+        if (deleteTarget.image_path) {
+            await supabaseBrowser.storage
+                .from("product-images")
+                .remove([deleteTarget.image_path]);
+        }
+
+        setProducts((prev) => prev.filter((p) => p.slug !== deleteTarget.slug));
+        setDeleting(false);
+        setDeleteTarget(null);
     }
 
     const fmt = new Intl.NumberFormat(lang === "en" ? "en-US" : "fr-FR");
@@ -198,7 +234,7 @@ export default function DashboardPage() {
                                     /{shop.handle}/{p.slug}
                                 </p>
 
-                                <div className="mt-3 flex gap-3 text-sm">
+                                <div className="mt-3 flex flex-wrap gap-2 text-sm">
                                     <button
                                         onClick={() => copyLink(p.slug)}
                                         className="rounded-full bg-green-50 px-4 py-1.5 font-medium text-green-700"
@@ -213,6 +249,21 @@ export default function DashboardPage() {
                                     >
                                         {d.view}
                                     </Link>
+                                    <Link
+                                        href={`/dashboard/edit/${p.slug}`}
+                                        className="rounded-full border border-gray-300 px-4 py-1.5 text-gray-700"
+                                    >
+                                        {d.edit}
+                                    </Link>
+                                    <button
+                                        onClick={() => {
+                                            setDeleteError("");
+                                            setDeleteTarget(p);
+                                        }}
+                                        className="rounded-full border border-red-200 px-4 py-1.5 text-red-600"
+                                    >
+                                        {d.delete}
+                                    </button>
                                 </div>
                             </div>
                         ))
@@ -248,6 +299,52 @@ export default function DashboardPage() {
                                 className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 font-semibold text-white"
                             >
                                 {d.logoutConfirm}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {deleteTarget && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+                    onClick={() => {
+                        if (!deleting) {
+                            setDeleteTarget(null);
+                            setDeleteError("");
+                        }
+                    }}
+                >
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="delete-title"
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl"
+                    >
+                        <h2 id="delete-title" className="text-lg font-bold">
+                            {d.deleteTitle}
+                        </h2>
+                        <p className="mt-2 font-semibold">{deleteTarget.name}</p>
+                        <p className="mt-2 text-sm text-gray-600">{d.deleteText}</p>
+                        <p className="mt-3 text-sm text-red-600">{deleteError}</p>
+                        <div className="mt-4 flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setDeleteTarget(null);
+                                    setDeleteError("");
+                                }}
+                                disabled={deleting}
+                                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-700 disabled:opacity-60"
+                            >
+                                {d.cancel}
+                            </button>
+                            <button
+                                onClick={deleteProduct}
+                                disabled={deleting}
+                                className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 font-semibold text-white disabled:opacity-60"
+                            >
+                                {d.deleteConfirm}
                             </button>
                         </div>
                     </div>
