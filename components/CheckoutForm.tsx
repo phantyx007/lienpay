@@ -82,18 +82,18 @@ export default function CheckoutForm({
                     autoComplete="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5"
                 />
             </div>
 
             <div>
                 <label className="text-sm font-medium">{labels.phone}</label>
-                <div className="mt-1 flex gap-2">
+                <div className="mt-1 flex flex-col gap-2 sm:flex-row">
                     <select
                         aria-label={labels.country}
                         value={countryCode}
                         onChange={(e) => setCountryCode(e.target.value as CountryCode)}
-                        className="w-40 shrink-0 rounded-lg border border-gray-300 bg-white px-2 py-2"
+                        className="w-full shrink-0 rounded-lg border border-gray-300 bg-white px-2 py-2.5 sm:w-48"
                     >
                         {africa.map((c) => (
                             <option key={c.code} value={c.code}>
@@ -115,7 +115,7 @@ export default function CheckoutForm({
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder={example}
-                        className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2"
+                        className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2.5"
                     />
                 </div>
                 <p className="mt-1 text-xs text-gray-500">{labels.phoneHint}</p>
@@ -129,7 +129,7 @@ export default function CheckoutForm({
                     autoComplete="street-address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5"
                 />
             </div>
 

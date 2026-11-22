@@ -158,11 +158,11 @@ export default function DashboardPage() {
         <main translate="no" className="min-h-screen bg-gray-50 px-4 py-14 text-gray-900">
             <div className="mx-auto max-w-2xl">
                 <div className="rounded-2xl bg-green-800 p-5 text-white shadow-sm">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
                         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/20 text-2xl font-bold">
                             {initial}
                         </div>
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 basis-40">
                             <p className="text-xs uppercase tracking-wide text-green-100">
                                 {d.subtitle}
                             </p>
@@ -171,7 +171,7 @@ export default function DashboardPage() {
                         </div>
                         <button
                             onClick={() => setConfirmLogout(true)}
-                            className="shrink-0 rounded-full border border-white/40 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/10"
+                            className="min-h-10 shrink-0 rounded-full border border-white/40 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
                         >
                             {d.logout}
                         </button>
@@ -189,7 +189,7 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <Link
                         href="/dashboard/new"
                         className="rounded-lg bg-green-700 px-4 py-3 text-center font-semibold text-white"
@@ -203,6 +203,7 @@ export default function DashboardPage() {
                         {d.orders}
                     </Link>
                 </div>
+
                 <Link
                     href="/dashboard/customers"
                     className="mt-3 block rounded-lg border border-green-700 bg-white px-4 py-3 text-center font-semibold text-green-700"
@@ -243,7 +244,7 @@ export default function DashboardPage() {
                                 <div className="mt-3 flex flex-wrap gap-2 text-sm">
                                     <button
                                         onClick={() => copyLink(p.slug)}
-                                        className="rounded-full bg-green-50 px-4 py-1.5 font-medium text-green-700"
+                                        className="rounded-full bg-green-50 px-4 py-2.5 font-medium text-green-700"
                                     >
                                         {copied === p.slug ? d.copied : d.copy}
                                     </button>
@@ -251,13 +252,13 @@ export default function DashboardPage() {
                                         href={`/${shop.handle}/${p.slug}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="rounded-full border border-gray-300 px-4 py-1.5 text-gray-700"
+                                        className="rounded-full border border-gray-300 px-4 py-2.5 text-gray-700"
                                     >
                                         {d.view}
                                     </Link>
                                     <Link
                                         href={`/dashboard/edit/${p.slug}`}
-                                        className="rounded-full border border-gray-300 px-4 py-1.5 text-gray-700"
+                                        className="rounded-full border border-gray-300 px-4 py-2.5 text-gray-700"
                                     >
                                         {d.edit}
                                     </Link>
@@ -266,7 +267,7 @@ export default function DashboardPage() {
                                             setDeleteError("");
                                             setDeleteTarget(p);
                                         }}
-                                        className="rounded-full border border-red-200 px-4 py-1.5 text-red-600"
+                                        className="rounded-full border border-red-200 px-4 py-2.5 text-red-600"
                                     >
                                         {d.delete}
                                     </button>

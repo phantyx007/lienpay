@@ -43,7 +43,7 @@ export function LanguageSwitcher() {
     return (
         <div
             translate="no"
-            className="absolute right-3 top-3 z-50 flex overflow-hidden rounded-full border border-gray-300 bg-white text-xs font-semibold shadow-sm"
+            className="absolute right-3 top-3 z-40 flex overflow-hidden rounded-full border border-gray-300 bg-white text-xs font-semibold shadow-sm"
         >
             {options.map((code) => (
                 <button
@@ -51,7 +51,7 @@ export function LanguageSwitcher() {
                     type="button"
                     aria-pressed={lang === code}
                     onClick={() => setLang(code)}
-                    className={`px-3 py-1 ${lang === code ? "bg-green-700 text-white" : "text-gray-600"
+                    className={`px-4 py-2 ${lang === code ? "bg-green-700 text-white" : "text-gray-600"
                         }`}
                 >
                     {code.toUpperCase()}
