@@ -11,6 +11,8 @@ import {
 type Labels = {
     title: string;
     name: string;
+    email: string;
+    emailHint: string;
     phone: string;
     phoneHint: string;
     country: string;
@@ -30,6 +32,7 @@ export default function CheckoutForm({
     labels: Labels;
 }) {
     const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
     const [countryCode, setCountryCode] = useState<CountryCode>("TG");
     const [phone, setPhone] = useState("");
     const [address, setAddress] = useState("");
@@ -54,7 +57,13 @@ export default function CheckoutForm({
             const res = await fetch("/api/orders", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId, name, phone: fullPhone, address }),
+                body: JSON.stringify({
+                    productId,
+                    name,
+                    email,
+                    phone: fullPhone,
+                    address,
+                }),
             });
             const data = await res.json().catch(() => ({}));
             if (res.status === 400) {
@@ -63,7 +72,11 @@ export default function CheckoutForm({
                 return;
             }
             if (!res.ok || !data.orderId) throw new Error("order_failed");
-            window.location.href = `/commande/${data.orderId}`;
+
+            window.location.href =
+                typeof data.checkoutUrl === "string" && data.checkoutUrl
+                    ? data.checkoutUrl
+                    : `/commande/${data.orderId}`;
         } catch {
             setErrorText(labels.error);
             setLoading(false);
@@ -84,6 +97,20 @@ export default function CheckoutForm({
                     onChange={(e) => setName(e.target.value)}
                     className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5"
                 />
+            </div>
+
+            <div>
+                <label className="text-sm font-medium">{labels.email}</label>
+                <input
+                    required
+                    type="email"
+                    maxLength={120}
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5"
+                />
+                <p className="mt-1 text-xs text-gray-500">{labels.emailHint}</p>
             </div>
 
             <div>

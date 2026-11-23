@@ -42,6 +42,8 @@ export default async function ProductPage({
                     labels={{
                         title: t.formTitle,
                         name: t.nameLabel,
+                        email: t.emailLabel,
+                        emailHint: t.emailHint,
                         phone: t.phoneLabel,
                         phoneHint: t.phoneHint,
                         country: t.countryLabel,

@@ -22,6 +22,8 @@ const fr = {
         countryLabel: "Pays",
         addressLabel: "Adresse de livraison (quartier, repère)",
         fieldsError: "Vérifie ton nom, ton numéro de téléphone et ton adresse.",
+        emailLabel: "Ton adresse e-mail",
+        emailHint: "Elle est demandée par le service de paiement.",
     },
     order: {
         title: "Ta commande",
@@ -200,6 +202,8 @@ const en: Dict = {
         countryLabel: "Country",
         addressLabel: "Delivery address (area, landmark)",
         fieldsError: "Please check your name, phone number and address.",
+        emailLabel: "Your email address",
+        emailHint: "It is required by the payment service.",
     },
     order: {
         title: "Your order",
