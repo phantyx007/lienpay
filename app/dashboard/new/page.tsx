@@ -122,7 +122,7 @@ export default function NewProductPage() {
         if (!shop || !userId) return;
 
         const amount = Number(price);
-        if (!Number.isInteger(amount) || amount <= 0) {
+        if (!Number.isInteger(amount) || amount < 200) {
             setMessage(n.priceError);
             return;
         }

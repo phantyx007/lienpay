@@ -1,7 +1,8 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { markOrderPaid, markOrderFailed } from "@/lib/orders";
+import { markOrderPaid, markOrderFailed, syncOrderWithSaspay } from "@/lib/orders";
 import { getLang } from "@/lib/lang-server";
 import { dictionaries } from "@/lib/i18n";
 
@@ -9,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Simulation de paiement : désactivée en production.
+// Simulation de paiement : désactivée en production et sans la variable dédiée.
 async function simulate(formData: FormData) {
     "use server";
     if (
@@ -18,6 +19,7 @@ async function simulate(formData: FormData) {
     ) {
         return;
     }
+
     const orderId = String(formData.get("orderId") ?? "");
     const outcome = String(formData.get("outcome") ?? "");
     if (!UUID.test(orderId)) return;
@@ -38,11 +40,37 @@ export default async function OrderPage({
 
     const { data: order } = await supabaseAdmin
         .from("orders")
-        .select("id, product_name, amount, status")
+        .select("id, product_name, product_slug, seller_id, amount, status, saspay_session_id")
         .eq("id", orderId)
         .maybeSingle();
 
     if (!order) notFound();
+
+    // Le statut affiché est toujours revérifié auprès de SasPay :
+    // la redirection de retour seule ne prouve rien.
+    let status: string = order.status;
+    if (order.saspay_session_id && (status === "pending" || status === "failed")) {
+        try {
+            status = await syncOrderWithSaspay({
+                id: order.id,
+                saspay_session_id: order.saspay_session_id,
+                status,
+            });
+        } catch (e) {
+            console.error("[commande] vérification impossible :", e instanceof Error ? e.message : e);
+        }
+    }
+
+    // Lien pour réessayer : retour à la page du produit.
+    let retryHref: string | null = null;
+    if (status === "failed" && order.seller_id && order.product_slug) {
+        const { data: shop } = await supabaseAdmin
+            .from("shops")
+            .select("handle")
+            .eq("seller_id", order.seller_id)
+            .maybeSingle();
+        if (shop) retryHref = `/${shop.handle}/${order.product_slug}`;
+    }
 
     const lang = await getLang();
     const t = dictionaries[lang].order;
@@ -72,7 +100,7 @@ export default async function OrderPage({
     const showTools =
         process.env.NODE_ENV !== "production" &&
         process.env.ENABLE_PAYMENT_SIMULATOR === "true" &&
-        order.status === "pending";
+        status === "pending";
 
     return (
         <main className="min-h-screen bg-gray-50 px-4 py-14 text-gray-900">
@@ -82,11 +110,20 @@ export default async function OrderPage({
                 <p className="mt-2 text-3xl font-bold">{amount}</p>
 
                 <p
-                    className={`mt-4 inline-block rounded-full px-3 py-1 text-sm font-semibold ${colors[order.status]}`}
+                    className={`mt-4 inline-block rounded-full px-3 py-1 text-sm font-semibold ${colors[status] ?? colors.pending}`}
                 >
-                    {labels[order.status]}
+                    {labels[status] ?? labels.pending}
                 </p>
-                <p className="mt-3 text-gray-600">{messages[order.status]}</p>
+                <p className="mt-3 text-gray-600">{messages[status] ?? messages.pending}</p>
+
+                {retryHref && (
+                    <Link
+                        href={retryHref}
+                        className="mt-5 block rounded-lg bg-green-700 px-4 py-3 text-center font-semibold text-white"
+                    >
+                        {t.retry}
+                    </Link>
+                )}
 
                 {showTools && (
                     <form action={simulate} className="mt-6 rounded-lg border border-dashed border-gray-300 p-4">
