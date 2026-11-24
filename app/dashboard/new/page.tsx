@@ -5,36 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { friendlyError } from "@/lib/i18n";
-import { SLUG_RE, slugify } from "@/lib/slug";
+import { slugify } from "@/lib/slug";
+import { compressImage, IMAGE_TYPES, MAX_IMAGE_SIZE } from "@/lib/image";
 import { useT } from "@/components/LanguageProvider";
-
-const MAX_FILE = 10 * 1024 * 1024;
-const TYPES = ["image/jpeg", "image/png", "image/webp"];
-
-async function compressImage(file: File): Promise<Blob> {
-    const bitmap = await createImageBitmap(file);
-    const max = 1000;
-    const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
-    const w = Math.round(bitmap.width * scale);
-    const h = Math.round(bitmap.height * scale);
-
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("canvas");
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, w, h);
-    ctx.drawImage(bitmap, 0, 0, w, h);
-
-    return new Promise((resolve, reject) =>
-        canvas.toBlob(
-            (blob) => (blob ? resolve(blob) : reject(new Error("blob"))),
-            "image/jpeg",
-            0.8
-        )
-    );
-}
 
 export default function NewProductPage() {
     const router = useRouter();
@@ -45,13 +18,13 @@ export default function NewProductPage() {
     const [shop, setShop] = useState<{ handle: string; name: string } | null>(null);
     const [origin, setOrigin] = useState("");
     const [name, setName] = useState("");
-    const [slug, setSlug] = useState("");
-    const [slugEdited, setSlugEdited] = useState(false);
     const [price, setPrice] = useState("");
     const [file, setFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
+    const [created, setCreated] = useState<{ slug: string; name: string } | null>(null);
+    const [copied, setCopied] = useState(false);
     const fileRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -79,16 +52,6 @@ export default function NewProductPage() {
         init();
     }, [router]);
 
-    function onNameChange(value: string) {
-        setName(value);
-        if (!slugEdited) setSlug(slugify(value, 50));
-    }
-
-    function onSlugChange(value: string) {
-        setSlugEdited(true);
-        setSlug(value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
-    }
-
     function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
         setMessage("");
         if (preview) URL.revokeObjectURL(preview);
@@ -98,7 +61,7 @@ export default function NewProductPage() {
             setPreview(null);
             return;
         }
-        if (!TYPES.includes(f.type) || f.size > MAX_FILE) {
+        if (!IMAGE_TYPES.includes(f.type) || f.size > MAX_IMAGE_SIZE) {
             setMessage(n.imageInvalid);
             e.target.value = "";
             setFile(null);
@@ -126,10 +89,6 @@ export default function NewProductPage() {
             setMessage(n.priceError);
             return;
         }
-        if (slug.length < 2 || slug.length > 50 || !SLUG_RE.test(slug)) {
-            setMessage(n.linkInvalid);
-            return;
-        }
 
         setLoading(true);
 
@@ -152,26 +111,113 @@ export default function NewProductPage() {
             }
         }
 
-        const { error } = await supabaseBrowser.from("products").insert({
-            slug,
-            name: name.trim(),
-            price: amount,
-            seller: shop.name,
-            image_path: imagePath,
-        });
+        // Le lien est créé automatiquement à partir du nom du produit.
+        // En cas de doublon, on ajoute quatre caractères au hasard.
+        const base = slugify(name, 40);
+        const root = base.length >= 2 ? base : "produit";
 
-        if (error) {
+        let createdSlug: string | null = null;
+        let lastError: { code?: string; message: string } | null = null;
+
+        for (let attempt = 0; attempt < 4; attempt++) {
+            const slug =
+                attempt === 0
+                    ? root
+                    : `${root}-${Math.random().toString(36).slice(2, 6)}`;
+
+            const { error } = await supabaseBrowser.from("products").insert({
+                slug,
+                name: name.trim(),
+                price: amount,
+                seller: shop.name,
+                image_path: imagePath,
+            });
+
+            if (!error) {
+                createdSlug = slug;
+                break;
+            }
+            lastError = error;
+            if (error.code !== "23505") break;
+        }
+
+        if (!createdSlug) {
             if (imagePath) {
                 await supabaseBrowser.storage.from("product-images").remove([imagePath]);
             }
             setLoading(false);
-            if (error.code === "23505") setMessage(n.linkTaken);
-            else setMessage(friendlyError(error.message, lang));
+            setMessage(friendlyError(lastError?.message ?? "", lang));
             return;
         }
 
         setLoading(false);
-        router.push("/dashboard");
+        setCreated({ slug: createdSlug, name: name.trim() });
+    }
+
+    async function copyLink(link: string) {
+        try {
+            await navigator.clipboard.writeText(link);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            setCopied(false);
+        }
+    }
+
+    function addAnother() {
+        removeImage();
+        setName("");
+        setPrice("");
+        setMessage("");
+        setCopied(false);
+        setCreated(null);
+    }
+
+    if (created && shop) {
+        const link = `${origin}/${shop.handle}/${created.slug}`;
+        return (
+            <main translate="no" className="min-h-screen bg-gray-50 px-4 py-14 text-gray-900">
+                <div className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-sm">
+                    <p className="text-sm font-semibold text-green-700">{n.createdTitle}</p>
+                    <h1 className="mt-1 text-2xl font-bold">{created.name}</h1>
+
+                    <p className="mt-5 text-sm text-gray-600">{n.yourLink}</p>
+                    <p className="mt-2 break-all rounded-lg bg-gray-50 px-3 py-3 text-sm text-gray-800">
+                        {link}
+                    </p>
+
+                    <button
+                        onClick={() => copyLink(link)}
+                        className="mt-4 w-full rounded-lg bg-green-700 px-4 py-3 font-semibold text-white"
+                    >
+                        {copied ? n.linkCopied : n.copyLink}
+                    </button>
+
+                    <Link
+                        href={`/${shop.handle}/${created.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 block rounded-lg border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700"
+                    >
+                        {n.viewPage}
+                    </Link>
+
+                    <button
+                        onClick={addAnother}
+                        className="mt-3 w-full rounded-lg border border-green-700 px-4 py-3 font-semibold text-green-700"
+                    >
+                        {n.addAnother}
+                    </button>
+
+                    <Link
+                        href="/dashboard"
+                        className="mt-4 block text-center text-sm text-gray-600 underline"
+                    >
+                        {n.back}
+                    </Link>
+                </div>
+            </main>
+        );
     }
 
     return (
@@ -185,54 +231,46 @@ export default function NewProductPage() {
                         <input
                             required
                             value={name}
-                            onChange={(e) => onNameChange(e.target.value)}
-                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                            onChange={(e) => setName(e.target.value)}
+                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5"
                         />
                     </div>
 
                     <div>
                         <label className="text-sm font-medium">{n.image}</label>
+                        {preview && (
+                            <img
+                                src={preview}
+                                alt=""
+                                className="mt-2 h-32 w-32 rounded-lg object-cover"
+                            />
+                        )}
                         <input
                             ref={fileRef}
                             type="file"
                             accept="image/jpeg,image/png,image/webp"
                             onChange={onFileChange}
-                            className="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-green-50 file:px-4 file:py-2 file:font-medium file:text-green-700"
+                            className="hidden"
                         />
-                        <p className="mt-1 text-xs text-gray-500">{n.imageHint}</p>
-                        {preview && (
-                            <div className="mt-3">
-                                <img
-                                    src={preview}
-                                    alt=""
-                                    className="h-32 w-32 rounded-lg object-cover"
-                                />
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onClick={() => fileRef.current?.click()}
+                                className="rounded-full bg-green-50 px-4 py-2 text-sm font-medium text-green-700"
+                            >
+                                {preview ? n.changeImage : n.addImage}
+                            </button>
+                            {preview && (
                                 <button
                                     type="button"
                                     onClick={removeImage}
-                                    className="mt-2 text-sm text-gray-600 underline"
+                                    className="rounded-full border border-gray-300 px-4 py-2 text-sm text-gray-700"
                                 >
                                     {n.removeImage}
                                 </button>
-                            </div>
-                        )}
-                    </div>
-
-                    <div>
-                        <label className="text-sm font-medium">{n.link}</label>
-                        <input
-                            required
-                            maxLength={50}
-                            value={slug}
-                            onChange={(e) => onSlugChange(e.target.value)}
-                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
-                        />
-                        <p className="mt-1 text-xs text-gray-500">{n.linkHint}</p>
-                        {shop && (
-                            <p className="mt-2 break-all rounded-lg bg-gray-50 p-2 text-xs text-gray-600">
-                                {n.preview} {origin}/{shop.handle}/{slug || "…"}
-                            </p>
-                        )}
+                            )}
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">{n.imageHint}</p>
                     </div>
 
                     <div>
@@ -242,7 +280,7 @@ export default function NewProductPage() {
                             inputMode="numeric"
                             value={price}
                             onChange={(e) => setPrice(e.target.value)}
-                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5"
                         />
                     </div>
 

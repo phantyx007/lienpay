@@ -12,7 +12,6 @@ type Labels = {
     title: string;
     name: string;
     email: string;
-    emailHint: string;
     phone: string;
     phoneHint: string;
     country: string;
@@ -110,7 +109,6 @@ export default function CheckoutForm({
                     onChange={(e) => setEmail(e.target.value)}
                     className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5"
                 />
-                <p className="mt-1 text-xs text-gray-500">{labels.emailHint}</p>
             </div>
 
             <div>
